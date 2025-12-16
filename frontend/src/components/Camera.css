@@ -1,0 +1,43 @@
+.camera-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.section-title {
+    color: var(--text-secondary);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.camera-wrapper {
+    background-color: #000;
+    border-radius: 16px;
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+video#webcam {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+}
+
+.camera-overlay {
+    position: absolute;
+    bottom: 10px;
+    font-family: monospace;
+    font-size: 9px;
+    color: var(--accent-green);
+}

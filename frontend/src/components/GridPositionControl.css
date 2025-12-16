@@ -1,0 +1,84 @@
+.grid-position-control {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.grid-position-control h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.grid-description {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.position-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.grid-cell {
+    aspect-ratio: 1;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-card-lighter);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: 0.2s;
+    position: relative;
+}
+
+.grid-cell:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent-green);
+    transform: scale(1.05);
+}
+
+.grid-cell.active {
+    background: var(--accent-green-dim);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+}
+
+.grid-cell .cell-number {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.grid-cell i {
+    font-size: 14px;
+}
+
+.grid-cell.active::after {
+    content: '✓';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-green);
+    color: var(--check-mark-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}

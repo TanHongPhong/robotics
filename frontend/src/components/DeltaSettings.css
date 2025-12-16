@@ -1,0 +1,106 @@
+.delta-settings {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.delta-settings h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.delta-description {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+}
+
+.delta-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.delta-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.delta-input-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.delta-input-group label i {
+    color: var(--accent-green);
+    font-size: 14px;
+}
+
+.delta-input-group input {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card-lighter);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.delta-input-group input:focus {
+    outline: none;
+    border-color: var(--accent-green);
+    background: var(--bg-card-hover);
+}
+
+.delta-input-group input::-webkit-inner-spin-button,
+.delta-input-group input::-webkit-outer-spin-button {
+    opacity: 1;
+}
+
+.btn-save-delta {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid var(--accent-green);
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: 0.2s;
+    animation: pulse 2s infinite;
+}
+
+.btn-save-delta:hover {
+    background: var(--accent-green);
+    color: var(--check-mark-color);
+    transform: scale(1.02);
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 var(--accent-green);
+    }
+
+    50% {
+        box-shadow: 0 0 0 6px transparent;
+    }
+}

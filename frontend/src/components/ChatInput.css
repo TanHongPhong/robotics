@@ -1,0 +1,144 @@
+.chat-input-area {
+    padding: 15px 20px;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.input-wrapper {
+    flex: 1;
+    background: var(--input-bg);
+    border-radius: 28px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--accent-green);
+    background: var(--bg-card-lighter);
+}
+
+.input-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.input-wrapper input::placeholder {
+    color: var(--text-secondary);
+}
+
+.input-wrapper input:disabled {
+    opacity: 0.6;
+}
+
+/* Mic button (outside input, like Gemini) */
+.btn-mic-round {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg-card-lighter);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-mic-round:hover {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    transform: scale(1.05);
+}
+
+.btn-mic-round:active {
+    transform: scale(0.95);
+}
+
+/* Send button (replaces mic when typing, like Gemini) */
+.btn-send-round {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent-green);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-send-round:hover {
+    background: var(--accent-green);
+    transform: scale(1.1);
+    box-shadow: 0 2px 10px rgba(129, 224, 70, 0.4);
+}
+
+.btn-send-round:active {
+    transform: scale(0.95);
+}
+
+/* Status button (recording/processing) */
+.btn-status {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-status.recording {
+    background: #ff4757;
+    color: white;
+    animation: pulseRecord 1.5s infinite;
+}
+
+.btn-status.recording:hover {
+    background: #ff3447;
+}
+
+.btn-status.processing {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    cursor: wait;
+}
+
+.btn-status:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+@keyframes pulseRecord {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(255, 71, 87, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0);
+    }
+}

@@ -1,0 +1,70 @@
+.product-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+    position: relative;
+    box-shadow: var(--shadow-card);
+}
+
+.product-card:hover {
+    background-color: var(--bg-card-hover);
+    transform: translateY(-2px);
+    border-color: var(--accent-green);
+}
+
+.product-card.picked {
+    background-color: var(--accent-green-dim);
+    border-color: var(--accent-green);
+}
+
+.product-card .icon-box {
+    font-size: 20px;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+}
+
+.product-card.picked .icon-box {
+    color: var(--accent-green);
+}
+
+.product-card h4 {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: var(--text-primary);
+}
+
+.product-card span {
+    font-size: 9px;
+    color: var(--text-secondary);
+}
+
+.check-mark {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 14px;
+    height: 14px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8px;
+    color: var(--check-mark-color);
+    opacity: 0;
+    transform: scale(0);
+    transition: 0.2s;
+}
+
+.product-card.picked .check-mark {
+    opacity: 1;
+    transform: scale(1);
+}

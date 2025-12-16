@@ -1,0 +1,86 @@
+/* --- COLOR VARIABLES --- */
+:root {
+    /* === DARK MODE (Neon & Techy) === */
+    --bg-body: #131315;
+    --bg-sidebar: #1c1c1e;
+    --bg-card: #232325;
+    --bg-card-lighter: #2c2c2e;
+    --bg-card-hover: #3a3a3c;
+
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e93;
+    --border-color: #333;
+
+    --accent-green: #81e046;
+    --accent-green-dim: rgba(129, 224, 70, 0.15);
+    --check-mark-color: #000;
+
+    --shadow-card: none;
+
+    /* Chat specific colors (Dark) */
+    --chat-user-bg: #2c2c2e;
+    --chat-ai-bg: transparent;
+    --input-bg: #1c1c1e;
+}
+
+/* === LIGHT MODE (Clean & Harmonious) === */
+[data-theme="light"] {
+    --bg-body: #f1f5f9;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-lighter: #f8fafc;
+    --bg-card-hover: #e2e8f0;
+
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+
+    --border-color: #e2e8f0;
+
+    --accent-green: #059669;
+    --accent-green-dim: #d1fae5;
+    --check-mark-color: #fff;
+
+    --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+    /* Chat specific colors (Light) */
+    --chat-user-bg: #e2e8f0;
+    --chat-ai-bg: transparent;
+    --input-bg: #f1f5f9;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+#root {
+    display: flex;
+    width: 100%;
+    height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 45% 53%;
+    gap: 2%;
+    overflow: hidden;
+    height: 100vh;
+}

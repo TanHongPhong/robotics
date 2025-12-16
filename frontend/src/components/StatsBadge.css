@@ -1,0 +1,26 @@
+.stat-badge {
+    background: var(--bg-card-lighter);
+    padding: 5px 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+}
+
+.stat-badge h3 {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.stat-badge p {
+    font-size: 8px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin: 0;
+}

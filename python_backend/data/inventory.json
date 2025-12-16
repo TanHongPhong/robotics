@@ -1,0 +1,58 @@
+{
+    "items": [
+        {
+            "cell_id": 1,
+            "done": true,
+            "pick": false,
+            "product": ""
+        },
+        {
+            "cell_id": 2,
+            "done": false,
+            "pick": true,
+            "product": "Sữa tươi 1L"
+        },
+        {
+            "cell_id": 3,
+            "done": false,
+            "pick": false,
+            "product": "Sữa"
+        },
+        {
+            "cell_id": 4,
+            "done": false,
+            "pick": false,
+            "product": "Nước suối"
+        },
+        {
+            "cell_id": 5,
+            "done": false,
+            "pick": false,
+            "product": ""
+        },
+        {
+            "cell_id": 6,
+            "done": false,
+            "pick": true,
+            "product": "Kẹo bạc hà"
+        },
+        {
+            "cell_id": 7,
+            "done": false,
+            "pick": true,
+            "product": "Cà phê lon"
+        },
+        {
+            "cell_id": 8,
+            "done": false,
+            "pick": false,
+            "product": "Snack khoai"
+        },
+        {
+            "cell_id": 9,
+            "done": true,
+            "pick": false,
+            "product": "Nước cola"
+        }
+    ]
+}

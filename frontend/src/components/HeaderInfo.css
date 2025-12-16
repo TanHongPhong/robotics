@@ -1,0 +1,55 @@
+.header-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+    padding: 15px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+}
+
+.robot-profile,
+.vision-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.robot-icon,
+.vision-icon {
+    font-size: 20px;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--bg-card-lighter);
+}
+
+.robot-details h2,
+.vision-status h2 {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.robot-details p,
+.vision-status p {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.progress-mini {
+    width: 80px;
+    height: 4px;
+    background: var(--bg-card-hover);
+    border-radius: 2px;
+    margin-top: 5px;
+}
+
+.progress-mini-bar {
+    width: 92%;
+    height: 100%;
+    background-color: var(--accent-green);
+    border-radius: 2px;
+}
