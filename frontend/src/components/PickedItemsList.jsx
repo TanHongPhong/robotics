@@ -1,7 +1,7 @@
 import './PickedItemsList.css';
 
 export default function PickedItemsList({ items, onToggleDone }) {
-    const pickedItems = items.filter(item => item.pick);
+    const pickedItems = items.filter(item => item.pick && item.product && item.product.trim() !== "");
 
     return (
         <div className="picked-section">

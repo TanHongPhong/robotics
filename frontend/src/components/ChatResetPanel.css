@@ -1,0 +1,74 @@
+.chat-reset-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.chat-reset-panel h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.reset-info {
+    margin-bottom: 20px;
+}
+
+.reset-description {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.reset-description i {
+    color: var(--accent-blue);
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.reset-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-reset-chat {
+    flex: 1;
+    padding: 12px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card-lighter);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-reset-chat:hover {
+    background: rgba(0, 156, 255, 0.15);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    transform: translateY(-2px);
+}
+
+.btn-reset-chat:active {
+    transform: translateY(0);
+}
+
+.btn-reset-chat i {
+    font-size: 14px;
+}

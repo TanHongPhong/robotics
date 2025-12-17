@@ -104,7 +104,8 @@ export function InventoryProvider({ children }) {
         downloadJSON,
         resetData,
         saveToBackend,
-        setItems: updateItemsFromBackend
+        setItems: updateItemsFromBackend,
+        reloadInventory: loadInventoryData
     };
 
     return (

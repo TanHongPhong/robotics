@@ -60,7 +60,7 @@ def save_inventory(data: dict):
         print(f"💾 Inventory saved to: {INVENTORY_PATH}")
 
 def apply_updates(current: dict, updates: list) -> dict:
-    """Apply updates to inventory items"""
+    """Apply updates to inventory items - ONLY allow pick and done changes"""
     items = current.get("items", [])
     id_map = {int(it.get("cell_id")): it for it in items if "cell_id" in it}
     
@@ -79,8 +79,8 @@ def apply_updates(current: dict, updates: list) -> dict:
         item = id_map[cid]
         print(f"🔄 Updating cell {cid}: {upd}")
         
-        if "product" in upd:
-            item["product"] = str(upd["product"])
+        # ONLY allow pick and done changes
+        # Ignore cell_id and product changes from updates
         if "pick" in upd:
             item["pick"] = bool(upd["pick"])
             # If picking, reset done unless explicitly set

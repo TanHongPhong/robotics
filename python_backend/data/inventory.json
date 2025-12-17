@@ -2,27 +2,27 @@
     "items": [
         {
             "cell_id": 1,
-            "done": true,
+            "done": false,
             "pick": false,
             "product": ""
         },
         {
             "cell_id": 2,
             "done": false,
-            "pick": true,
-            "product": "Sữa tươi 1L"
+            "pick": false,
+            "product": ""
         },
         {
             "cell_id": 3,
             "done": false,
             "pick": false,
-            "product": "Sữa"
+            "product": ""
         },
         {
             "cell_id": 4,
             "done": false,
             "pick": false,
-            "product": "Nước suối"
+            "product": ""
         },
         {
             "cell_id": 5,
@@ -33,26 +33,26 @@
         {
             "cell_id": 6,
             "done": false,
-            "pick": true,
-            "product": "Kẹo bạc hà"
+            "pick": false,
+            "product": ""
         },
         {
             "cell_id": 7,
             "done": false,
-            "pick": true,
-            "product": "Cà phê lon"
+            "pick": false,
+            "product": ""
         },
         {
             "cell_id": 8,
-            "done": false,
+            "done": true,
             "pick": false,
-            "product": "Snack khoai"
+            "product": ""
         },
         {
             "cell_id": 9,
-            "done": true,
-            "pick": false,
-            "product": "Nước cola"
+            "done": false,
+            "pick": true,
+            "product": "Bánh quy"
         }
     ]
 }

@@ -4,6 +4,7 @@ import HeaderInfo from '../components/HeaderInfo';
 import RobotControlPanel from '../components/RobotControlPanel';
 import GridPositionControl from '../components/GridPositionControl';
 import DeltaSettings from '../components/DeltaSettings';
+import ChatResetPanel from '../components/ChatResetPanel';
 import Camera from '../components/Camera';
 import './SettingsPage.css';
 
@@ -158,6 +159,12 @@ export default function SettingsPage() {
         }
     };
 
+    const handleResetChat = () => {
+        localStorage.removeItem('robodoc-chat-messages');
+        addLog('✅ Đã xóa lịch sử chat');
+        alert('✅ Đã xóa lịch sử chat thành công!\n\nVui lòng vào trang Chat để thấy thay đổi.');
+    };
+
     if (isLoading) {
         return <div className="loading">Loading robot settings...</div>;
     }
@@ -181,22 +188,16 @@ export default function SettingsPage() {
                                 Z: {robotPosition.z.toFixed(1)} mm
                             </span>
                         </div>
-                        <button
-                            className="btn-save"
-                            onClick={handleResetData}
-                            style={{ backgroundColor: '#ff4757' }}
-                        >
-                            <i className="fa-solid fa-rotate-left"></i> Reset Data
-                        </button>
                     </div>
                 </div>
 
                 <div className="settings-content">
-                    <RobotControlPanel onCommand={handleRobotCommand} />
                     <GridPositionControl
                         onSelectCell={handleSelectCell}
                         currentCell={currentCell}
                     />
+                    <RobotControlPanel onCommand={handleRobotCommand} />
+                    <ChatResetPanel onResetChat={handleResetChat} />
                     <DeltaSettings
                         settings={settings.delta_adjustments}
                         onSave={handleSaveDelta}

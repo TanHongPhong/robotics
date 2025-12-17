@@ -8,7 +8,7 @@ import RightPanel from '../components/RightPanel';
 import './ChatPage.css';
 
 export default function ChatPage() {
-    const { items, toggleDone, isLoading } = useInventory();
+    const { items, toggleDone, isLoading, reloadInventory } = useInventory();
 
     // Load chat messages from localStorage (UI state only)
     const [messages, setMessages] = useState(() => {
@@ -143,8 +143,8 @@ export default function ChatPage() {
             // Check if inventory was updated
             if (response.inventory_updated && response.updated_inventory) {
                 console.log('✅ Inventory updated via natural language');
-                // Refetch inventory from backend instead of reload
-                window.location.reload(); // This will trigger InventoryContext to fetch from backend
+                // Refetch inventory from backend without page reload
+                await reloadInventory();
             }
 
         } catch (error) {
@@ -254,9 +254,42 @@ export default function ChatPage() {
                             )}
                         </span>
                     </div>
-                    <button className="btn-save" onClick={exportChat}>
-                        <i className="fa-solid fa-file-export"></i> Export Chat
-                    </button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            className="btn-save"
+                            onClick={async () => {
+                                try {
+                                    const response = await qwenAPI.robotCommand('start');
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `✅ ${response.message}`
+                                    }]);
+                                } catch (error) {
+                                    console.error('Failed to start robot:', error);
+                                }
+                            }}
+                            style={{ backgroundColor: 'var(--accent-blue)' }}
+                        >
+                            <i className="fa-solid fa-play"></i> Start
+                        </button>
+                        <button
+                            className="btn-save"
+                            onClick={async () => {
+                                try {
+                                    const response = await qwenAPI.robotCommand('stop');
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `🛑 ${response.message}`
+                                    }]);
+                                } catch (error) {
+                                    console.error('Failed to stop robot:', error);
+                                }
+                            }}
+                            style={{ backgroundColor: '#ff4757' }}
+                        >
+                            <i className="fa-solid fa-stop"></i> Stop
+                        </button>
+                    </div>
                 </div>
 
                 <div className="chat-fill-container">

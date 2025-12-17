@@ -86,13 +86,6 @@ export default function InventoryPage() {
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button
                             className="btn-save"
-                            onClick={handleConfirmPick}
-                            style={{ backgroundColor: 'var(--accent-green)' }}
-                        >
-                            <i className="fa-solid fa-check"></i> Confirm Pick
-                        </button>
-                        <button
-                            className="btn-save"
                             onClick={handleStartRobot}
                             disabled={robotStatus === 'running'}
                             style={{ backgroundColor: 'var(--accent-blue)' }}
