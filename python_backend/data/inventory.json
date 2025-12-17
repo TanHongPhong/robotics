@@ -4,19 +4,19 @@
             "cell_id": 1,
             "done": false,
             "pick": false,
-            "product": ""
+            "product": "alooo"
         },
         {
             "cell_id": 2,
             "done": false,
-            "pick": false,
-            "product": ""
+            "pick": true,
+            "product": "nhoooo"
         },
         {
             "cell_id": 3,
             "done": false,
-            "pick": false,
-            "product": ""
+            "pick": true,
+            "product": "alllll"
         },
         {
             "cell_id": 4,
@@ -44,15 +44,15 @@
         },
         {
             "cell_id": 8,
-            "done": true,
+            "done": false,
             "pick": false,
             "product": ""
         },
         {
             "cell_id": 9,
             "done": false,
-            "pick": true,
-            "product": "Bánh quy"
+            "pick": false,
+            "product": ""
         }
     ]
 }

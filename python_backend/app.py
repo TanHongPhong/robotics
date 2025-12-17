@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
-from qwen_service import QwenService
+from llm_service import LLMService, OLLAMA_TEMPERATURE, OLLAMA_NUM_CTX
 from stt_deepgram import DeepgramSTTController, normalize_with_qwen
 
 load_dotenv()
@@ -22,8 +22,8 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 # Initialize Socket.IO with CORS
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
-# Initialize Qwen service
-qwen_service = QwenService()
+# Initialize LLM service
+llm_service = LLMService()
 
 # Store chat history per session
 chat_sessions = {}
@@ -126,8 +126,8 @@ def health_check():
 
 @app.route('/api/ollama/status', methods=['GET'])
 def ollama_status():
-    """Check Ollama connection status"""
-    status = qwen_service.test_connection()
+    """Check Ollama connection status and GPU info"""
+    status = llm_service.test_connection()
     return jsonify(status)
 
 
@@ -191,15 +191,16 @@ def chat():
             })
         
         # ============================================================
-        # Get response from Qwen (should be JSON-only)
+        # Get response from LLM (should be JSON-only)
         # ============================================================
-        response_raw = qwen_service.chat_with_context(
+        response_data = llm_service.chat_with_context(
             user_message=user_message,
             chat_history=chat_history,
             inventory_context=inventory_context
         )
         
-        print(f"🤖 Raw Qwen response: {response_raw[:300]}")
+        response_raw = response_data.get("response", "")
+        print(f"🤖 Raw LLM response: {response_raw[:300]}")
         
         # Parse JSON action from response
         action = parse_llm_json(response_raw)
@@ -216,11 +217,12 @@ def chat():
                     "Hãy trả về ĐÚNG 1 JSON object với action=\"update_inventory\" và updates KHÔNG RỖNG.\n"
                     f"User request: {user_message}"
                 )
-                response_raw_2 = qwen_service.chat_with_context(
+                response_data_2 = llm_service.chat_with_context(
                     user_message=retry_msg,
                     chat_history=chat_history,
                     inventory_context=load_inventory()
                 )
+                response_raw_2 = response_data_2.get("response", "")
                 print(f"🔄 Retry response: {response_raw_2[:300]}")
                 action = parse_llm_json(response_raw_2)
         
@@ -234,9 +236,13 @@ def chat():
         if isinstance(action, dict):
             act = action.get("action")
             assistant_text = action.get("reply", "") or ""
+            reasoning = action.get("reasoning", "")
             
             print(f"✅ Parsed action: {act}")
             print(f"💬 Reply text: {assistant_text}")
+            print(f"🧠 Reasoning: {reasoning}")
+            print(f"⏱️  LLM Response Time: {response_data.get('elapsed_time', 0):.2f}s")
+            print(f"🎯 Tokens: {response_data.get('tokens_total', 0)} total")
             
             if act == "update_inventory":
                 updates = action.get("updates", [])
@@ -564,17 +570,26 @@ def handle_stop_stt(data):
 if __name__ == '__main__':
     port = int(os.environ.get('FLASK_PORT', 5000))
     
+    print(f"\n{'='*80}")
     print(f"🚀 Starting RoboDoc Python Backend on port {port}")
-    print(f"🤖 Qwen Model: {qwen_service.model}")
-    print(f"🔗 Ollama Host: {qwen_service.host}")
-    print(f"🎤 STT: Deepgram + Qwen normalization enabled")
+    print(f"{'='*80}")
+    print(f"🤖 LLM Model: {llm_service.model}")
+    print(f"🔗 Ollama Host: {llm_service.host}")
+    print(f"🎤 STT: Deepgram + LLM normalization enabled")
+    print(f"⚙️  Config: temp={OLLAMA_TEMPERATURE}, ctx={OLLAMA_NUM_CTX}")
     print(f"📡 Testing Ollama connection...")
     
-    status = qwen_service.test_connection()
+    status = llm_service.test_connection()
     if status['status'] == 'connected':
-        print(f"✅ Ollama connected! Available models: {status['models']}")
+        print(f"✅ Ollama connected!")
+        print(f"   📦 Available models: {len(status.get('models', []))} total")
+        print(f"   🎯 Current model: {status.get('current_model')}")
+        print(f"   🎮 GPU Status: {status.get('gpu_status', 'Unknown')}")
+        print(f"   📏 Context Window: {status.get('context_window', 'N/A')} tokens")
     else:
         print(f"⚠️  Ollama connection failed: {status.get('error')}")
+    
+    print(f"{'='*80}\n")
     
     # Run with Socket.IO
     socketio.run(app, host='0.0.0.0', port=port, debug=True, allow_unsafe_werkzeug=True)

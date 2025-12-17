@@ -27,9 +27,10 @@ FLUSH_MS = int(os.environ.get("DG_FLUSH_MS", "1200"))
 STOP_GRACE_S = float(os.environ.get("DG_STOP_GRACE_S", "6.0"))
 STREAM_LOG_MAX = int(os.environ.get("STREAM_LOG_MAX", "600"))
 
-# Qwen Configuration
+# Qwen Configuration for STT Normalization
 OLLAMA_BASE_URL = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
-QWEN_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b-instruct")
+QWEN_MODEL = os.environ.get("STT_MODEL", "qwen2.5:1.5b-instruct")
+STT_TEMPERATURE = float(os.environ.get("STT_TEMPERATURE", "0.2"))
 
 
 def build_deepgram_url():
