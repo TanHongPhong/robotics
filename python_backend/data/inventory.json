@@ -4,21 +4,21 @@
             "cell_id": 1,
             "class_id": 0,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "coca lon"
         },
         {
             "cell_id": 2,
             "class_id": 1,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "pepsi lon"
         },
         {
             "cell_id": 3,
             "class_id": 2,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "goi qua"
         },
         {
@@ -53,7 +53,7 @@
             "cell_id": 8,
             "class_id": 7,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "photron"
         },
         {
@@ -102,14 +102,14 @@
             "cell_id": 15,
             "class_id": 14,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "ket pepsi"
         },
         {
             "cell_id": 16,
             "class_id": 15,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "ket fanta"
         }
     ]

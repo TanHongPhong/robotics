@@ -33,6 +33,7 @@ export default function ChatPage() {
     const [interimTranscripts, setInterimTranscripts] = useState([]);
     const [sessionId] = useState(() => `session_${Date.now()}`);
     const [ollamaStatus, setOllamaStatus] = useState(null);
+    const [robotStatus, setRobotStatus] = useState('idle'); // idle, running, stopped
 
     // Save messages to localStorage whenever they change
     useEffect(() => {
@@ -68,11 +69,21 @@ export default function ChatPage() {
 
             if (lowerText === 'start' || lowerText === 'bắt đầu') {
                 try {
-                    const response = await qwenAPI.robotCommand('start');
+                    // Lấy danh sách class_id của các ô đã chọn
+                    const selectedClassIds = items
+                        .filter(item => item.pick)
+                        .map(item => item.class_id)
+                        .filter(id => id !== undefined);
+
+                    const response = await qwenAPI.robotCommand('start', {
+                        class_ids: selectedClassIds
+                    });
+
+                    setRobotStatus('running');
                     setIsTyping(false);
                     setMessages(prev => [...prev, {
                         type: 'ai',
-                        text: `✅ ${response.message}\n\nRobot đang bắt đầu lấy các sản phẩm đã đánh dấu (pick=true).`
+                        text: `✅ ${response.message}\n\nRobot đang bắt đầu lấy các sản phẩm đã đánh dấu (pick=true).\nClass IDs: [${selectedClassIds.join(', ')}]`
                     }]);
                     return;
                 } catch (error) {
@@ -81,6 +92,7 @@ export default function ChatPage() {
             } else if (lowerText === 'stop' || lowerText === 'dừng' || lowerText === 'dừng lại') {
                 try {
                     const response = await qwenAPI.robotCommand('stop');
+                    setRobotStatus('stopped');
                     setIsTyping(false);
                     setMessages(prev => [...prev, {
                         type: 'ai',
@@ -90,9 +102,23 @@ export default function ChatPage() {
                 } catch (error) {
                     robotCommandExecuted = true;
                 }
+            } else if (lowerText === 'home' || lowerText === 'về nhà') {
+                try {
+                    const response = await qwenAPI.robotCommand('home');
+                    setRobotStatus('idle');
+                    setIsTyping(false);
+                    setMessages(prev => [...prev, {
+                        type: 'ai',
+                        text: `✅ ${response.message}\n\nRobot đã về vị trí home.`
+                    }]);
+                    return;
+                } catch (error) {
+                    robotCommandExecuted = true;
+                }
             } else if (lowerText === 'reset' || lowerText === 'khởi động lại') {
                 try {
                     const response = await qwenAPI.robotCommand('reset');
+                    setRobotStatus('idle');
                     setIsTyping(false);
                     setMessages(prev => [...prev, {
                         type: 'ai',
@@ -252,6 +278,14 @@ export default function ChatPage() {
                                     {ollamaStatus.status === 'connected' ? '● Connected' : '● Disconnected'}
                                 </span>
                             )}
+                            <span style={{
+                                marginLeft: '10px',
+                                color: robotStatus === 'running' ? 'var(--accent-green)' :
+                                    robotStatus === 'stopped' ? '#ff4757' : '#888'
+                            }}>
+                                ● Robot: {robotStatus === 'running' ? 'Running' :
+                                    robotStatus === 'stopped' ? 'Stopped' : 'Idle'}
+                            </span>
                         </span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -259,15 +293,57 @@ export default function ChatPage() {
                             className="btn-save"
                             onClick={async () => {
                                 try {
-                                    const response = await qwenAPI.robotCommand('start');
+                                    const response = await qwenAPI.robotCommand('home');
+                                    setRobotStatus('idle');
                                     setMessages(prev => [...prev, {
                                         type: 'ai',
-                                        text: `✅ ${response.message}`
+                                        text: `✅ ${response.message}\n\nRobot đã về vị trí home.`
                                     }]);
+                                    console.log('✅ Robot homed:', response.message);
                                 } catch (error) {
-                                    console.error('Failed to start robot:', error);
+                                    console.error('❌ Failed to home robot:', error);
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `❌ Không thể home robot: ${error.message}`
+                                    }]);
                                 }
                             }}
+                            style={{ backgroundColor: '#f39c12' }}
+                        >
+                            <i className="fa-solid fa-home"></i> Home
+                        </button>
+                        <button
+                            className="btn-save"
+                            onClick={async () => {
+                                try {
+                                    // Lấy danh sách class_id của các ô đã chọn
+                                    const selectedClassIds = items
+                                        .filter(item => item.pick)
+                                        .map(item => item.class_id)
+                                        .filter(id => id !== undefined);
+
+                                    console.log('📦 Selected class IDs:', selectedClassIds);
+
+                                    // Gửi command start với class_ids
+                                    const response = await qwenAPI.robotCommand('start', {
+                                        class_ids: selectedClassIds
+                                    });
+
+                                    setRobotStatus('running');
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `✅ ${response.message}\n\nRobot đang bắt đầu lấy các sản phẩm đã đánh dấu (pick=true).\nClass IDs: [${selectedClassIds.join(', ')}]`
+                                    }]);
+                                    console.log('✅ Robot started:', response.message);
+                                } catch (error) {
+                                    console.error('❌ Failed to start robot:', error);
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `❌ Không thể khởi động robot: ${error.message}`
+                                    }]);
+                                }
+                            }}
+                            disabled={robotStatus === 'running'}
                             style={{ backgroundColor: 'var(--accent-blue)' }}
                         >
                             <i className="fa-solid fa-play"></i> Start
@@ -277,14 +353,21 @@ export default function ChatPage() {
                             onClick={async () => {
                                 try {
                                     const response = await qwenAPI.robotCommand('stop');
+                                    setRobotStatus('stopped');
                                     setMessages(prev => [...prev, {
                                         type: 'ai',
-                                        text: `🛑 ${response.message}`
+                                        text: `🛑 ${response.message}\n\nRobot đã dừng lại.`
                                     }]);
+                                    console.log('✅ Robot stopped:', response.message);
                                 } catch (error) {
-                                    console.error('Failed to stop robot:', error);
+                                    console.error('❌ Failed to stop robot:', error);
+                                    setMessages(prev => [...prev, {
+                                        type: 'ai',
+                                        text: `❌ Không thể dừng robot: ${error.message}`
+                                    }]);
                                 }
                             }}
+                            disabled={robotStatus === 'idle' || robotStatus === 'stopped'}
                             style={{ backgroundColor: '#ff4757' }}
                         >
                             <i className="fa-solid fa-stop"></i> Stop

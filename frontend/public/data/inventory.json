@@ -1,0 +1,58 @@
+{
+    "items": [
+        {
+            "cell_id": 1,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 2,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 3,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 4,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 5,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 6,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 7,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 8,
+            "product": "",
+            "pick": false,
+            "done": false
+        },
+        {
+            "cell_id": 9,
+            "product": "",
+            "pick": false,
+            "done": false
+        }
+    ]
+}
