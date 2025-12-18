@@ -1,5 +1,5 @@
 """
-Flask API Server for RoboDoc with Qwen Integration + STT
+Flask API Server for RoboDoc with DeepSeek R1 (Llama 3.1) Integration + STT
 """
 import os
 import json

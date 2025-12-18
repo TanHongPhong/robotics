@@ -1,5 +1,5 @@
 /**
- * API Service for communicating with Python backend (Qwen LLM)
+ * API Service for communicating with Python backend (DeepSeek R1 LLM)
  */
 
 const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL || 'http://localhost:5000';
@@ -32,7 +32,7 @@ class QwenAPIService {
     }
 
     /**
-     * Send a chat message to Qwen
+     * Send a chat message to DeepSeek R1
      * @param {string} message - User message
      * @param {string} sessionId - Session ID for chat history
      * @param {Array} chatHistory - Previous chat messages
@@ -56,7 +56,7 @@ class QwenAPIService {
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Failed to get response from Qwen');
+                throw new Error(error.error || 'Failed to get response from DeepSeek R1');
             }
 
             return await response.json();
@@ -178,18 +178,40 @@ class QwenAPIService {
     }
 
     /**
-     * Execute robot command (start, stop, reset)
-     * @param {string} command - Command to execute ('start', 'stop', 'reset')
+     * Execute robot command (start, stop, reset, home)
+     * @param {string} command - Command to execute ('start', 'stop', 'reset', 'home')
+     * @param {Object} data - Additional data (e.g., class_ids for start command)
      */
-    async robotCommand(command) {
+    async robotCommand(command, data = {}) {
         try {
-            const response = await fetch(`${PYTHON_API_URL}/api/robot/command`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ command })
-            });
+            // Thử Arduino API trước (port 5001)
+            const ARDUINO_API = 'http://localhost:5001';
+
+            const payload = {
+                command,
+                ...data
+            };
+
+            let response;
+            try {
+                response = await fetch(`${ARDUINO_API}/api/arduino/command`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+            } catch (arduinoError) {
+                // Fallback to main API (port 5000)
+                console.warn('Arduino API not available, fallback to main API');
+                response = await fetch(`${PYTHON_API_URL}/api/robot/command`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+            }
 
             if (!response.ok) {
                 const error = await response.json();

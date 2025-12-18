@@ -2,57 +2,115 @@
     "items": [
         {
             "cell_id": 1,
+            "class_id": 0,
             "done": false,
-            "pick": false,
-            "product": "alooo"
+            "pick": true,
+            "product": "coca lon"
         },
         {
             "cell_id": 2,
+            "class_id": 1,
             "done": false,
-            "pick": true,
-            "product": "nhoooo"
+            "pick": false,
+            "product": "pepsi lon"
         },
         {
             "cell_id": 3,
+            "class_id": 2,
             "done": false,
             "pick": true,
-            "product": "alllll"
+            "product": "goi qua"
         },
         {
             "cell_id": 4,
+            "class_id": 3,
             "done": false,
             "pick": false,
-            "product": ""
+            "product": "van tho"
         },
         {
             "cell_id": 5,
+            "class_id": 4,
             "done": false,
-            "pick": false,
-            "product": ""
+            "pick": true,
+            "product": "cay quat"
         },
         {
             "cell_id": 6,
+            "class_id": 5,
             "done": false,
             "pick": false,
-            "product": ""
+            "product": "siukay"
         },
         {
             "cell_id": 7,
+            "class_id": 6,
             "done": false,
             "pick": false,
-            "product": ""
+            "product": "xuanay"
         },
         {
             "cell_id": 8,
+            "class_id": 7,
             "done": false,
-            "pick": false,
-            "product": ""
+            "pick": true,
+            "product": "photron"
         },
         {
             "cell_id": 9,
+            "class_id": 8,
             "done": false,
             "pick": false,
-            "product": ""
+            "product": "haohao"
+        },
+        {
+            "cell_id": 10,
+            "class_id": 9,
+            "done": false,
+            "pick": true,
+            "product": "omachi"
+        },
+        {
+            "cell_id": 11,
+            "class_id": 10,
+            "done": false,
+            "pick": false,
+            "product": "coca chai"
+        },
+        {
+            "cell_id": 12,
+            "class_id": 11,
+            "done": false,
+            "pick": false,
+            "product": "nuoc khoang"
+        },
+        {
+            "cell_id": 13,
+            "class_id": 12,
+            "done": false,
+            "pick": false,
+            "product": "ket sprite"
+        },
+        {
+            "cell_id": 14,
+            "class_id": 13,
+            "done": false,
+            "pick": false,
+            "product": "ket coca"
+        },
+        {
+            "cell_id": 15,
+            "class_id": 14,
+            "done": false,
+            "pick": false,
+            "product": "ket pepsi"
+        },
+        {
+            "cell_id": 16,
+            "class_id": 15,
+            "done": false,
+            "pick": true,
+            "product": "ket fanta"
         }
     ]
 }

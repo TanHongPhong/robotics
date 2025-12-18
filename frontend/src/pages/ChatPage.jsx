@@ -23,7 +23,7 @@ export default function ChatPage() {
         // Default greeting
         return [{
             type: 'ai',
-            text: 'Hello! I am RoboDoc AI powered by Qwen. I can help you verify inventory, suggest picking routes, or check system status. How can I help you today?'
+            text: 'Hello! I am RoboDoc AI powered by DeepSeek R1. I can help you verify inventory, suggest picking routes, or check system status. How can I help you today?'
         }];
     });
 
@@ -51,7 +51,7 @@ export default function ChatPage() {
         if (status.status !== 'connected') {
             setMessages(prev => [...prev, {
                 type: 'ai',
-                text: '⚠️ Warning: Cannot connect to Ollama/Qwen. Please make sure Ollama is running and the model is loaded.'
+                text: '⚠️ Warning: Cannot connect to Ollama/DeepSeek R1. Please make sure Ollama is running and the model is loaded.'
             }]);
         }
     };
@@ -154,7 +154,7 @@ export default function ChatPage() {
             const fallbackResponse = generateFallbackResponse(text);
             setMessages(prev => [...prev, {
                 type: 'ai',
-                text: `⚠️ ${fallbackResponse}\n\n(Note: Unable to connect to Qwen. ${error.message})`
+                text: `⚠️ ${fallbackResponse}\n\n(Note: Unable to connect to DeepSeek R1. ${error.message})`
             }]);
         }
     };
@@ -163,7 +163,7 @@ export default function ChatPage() {
         localStorage.removeItem('robodoc-chat-messages');
         setMessages([{
             type: 'ai',
-            text: 'Hello! I am RoboDoc AI powered by Qwen. How can I help you today?'
+            text: 'Hello! I am RoboDoc AI powered by DeepSeek R1. How can I help you today?'
         }]);
     };
 
@@ -227,7 +227,7 @@ export default function ChatPage() {
                 <div>Loading chat interface...</div>
                 {ollamaStatus && ollamaStatus.status === 'connected' && (
                     <div style={{ fontSize: '12px', marginTop: '10px', color: 'var(--accent-green)' }}>
-                        ✅ Qwen Connected: {ollamaStatus.current_model}
+                        ✅ DeepSeek R1 Connected: {ollamaStatus.current_model}
                     </div>
                 )}
             </div>
@@ -241,7 +241,7 @@ export default function ChatPage() {
 
                 <div className="section-header-group">
                     <div>
-                        <h2 className="main-title">AI Assistant (Qwen)</h2>
+                        <h2 className="main-title">AI Assistant (DeepSeek R1)</h2>
                         <span className="section-title">
                             CONVERSATIONAL INTERFACE
                             {ollamaStatus && (

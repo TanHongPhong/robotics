@@ -1,307 +1,202 @@
 """
-LLM Service Module - Generic LLM Integration
-Supports Ollama models (Llama, Qwen, etc.) with GPU acceleration
+LLM Service for RoboDoc - DeepSeek R1 (Powered by Llama 3.1:8b-instruct-q4_K_M)
 """
 import os
-import json
 import time
-import urllib.request
-import urllib.error
-from typing import List, Dict, Optional
-from dotenv import load_dotenv
+import json
+import requests
+from typing import Dict, List, Any, Optional
 
-load_dotenv()
-
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M")
-OLLAMA_TEMPERATURE = float(os.environ.get("OLLAMA_TEMPERATURE", "0.2"))
-OLLAMA_TOP_P = float(os.environ.get("OLLAMA_TOP_P", "0.9"))
-OLLAMA_NUM_CTX = int(os.environ.get("OLLAMA_NUM_CTX", "8192"))
+# Ollama Configuration
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b-instruct-q4_K_M")
+OLLAMA_TEMPERATURE = float(os.getenv("OLLAMA_TEMPERATURE", "0.3"))
+OLLAMA_NUM_CTX = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
 
 
 class LLMService:
-    """Service for interacting with LLM via Ollama with GPU support"""
+    """Service for interacting with Ollama LLM (Llama 3.1)"""
     
-    def __init__(self):
-        self.host = OLLAMA_HOST
-        self.model = OLLAMA_MODEL
+    def __init__(self, host: str = OLLAMA_HOST, model: str = OLLAMA_MODEL):
+        self.host = host
+        self.model = model
+        self.temperature = OLLAMA_TEMPERATURE
+        self.num_ctx = OLLAMA_NUM_CTX
         
-        # Enhanced system message with better logic and structure
-        self.system_message = {
-            "role": "system",
-            "content": (
-                "You are RoboDoc AI Assistant - an intelligent inventory management system for robotic picking.\n\n"
-                
-                "## YOUR ROLE\n"
-                "Help users manage inventory through natural language (Vietnamese/English). "
-                "You can read current inventory state and execute safe update actions.\n\n"
-                
-                "## RESPONSE FORMAT (CRITICAL)\n"
-                "You MUST respond with EXACTLY ONE valid JSON object. "
-                "NO markdown formatting, NO code blocks (```), NO explanations outside JSON.\n\n"
-                
-                "Required JSON Schema:\n"
-                "{\n"
-                '  "action": "update_inventory" | "none",\n'
-                '  "reply": "your helpful response in Vietnamese",\n'
-                '  "reasoning": "brief explanation of your decision (1 sentence)",\n'
-                '  "updates": [\n'
-                '    {"cell_id": 1, "pick": true},\n'
-                '    {"cell_id": 2, "done": true}\n'
-                '  ]\n'
-                "}\n\n"
-                
-                "## STRICT SAFETY RULES\n"
-                "1. NEVER modify 'cell_id' or 'product' fields - these are immutable\n"
-                "2. ONLY change 'pick' (boolean) and 'done' (boolean) fields\n"
-                "3. Use ONLY cell_id values that exist in the provided INVENTORY_JSON\n"
-                "4. Do NOT create, add, or invent new products - only backend/user can add products\n"
-                "5. If user requests inventory changes → action MUST be 'update_inventory'\n"
-                "6. If action='update_inventory' → 'updates' array MUST have at least 1 item\n"
-                "7. If no changes needed (info query) → action='none' and updates=[]\n\n"
-                
-                "## ACTION MAPPING RULES\n"
-                "Vietnamese commands:\n"
-                "- 'chọn ô N' / 'lấy ô N' → {\"cell_id\": N, \"pick\": true}\n"
-                "- 'chọn [tên sản phẩm]' → find item with matching product, set pick=true\n"
-                "- 'bỏ chọn ô N' / 'huỷ ô N' → {\"cell_id\": N, \"pick\": false}\n"
-                "- 'đã lấy xong ô N' / 'hoàn thành ô N' → {\"cell_id\": N, \"done\": true}\n"
-                "- 'xóa ô N' / 'clear ô N' → {\"cell_id\": N, \"pick\": false, \"done\": false}\n"
-                "- 'chọn tất cả' → set all cells to pick=true\n"
-                "- 'bỏ chọn tất cả' → set all cells to pick=false\n\n"
-                
-                "English commands:\n"
-                "- 'pick cell N' / 'select N' → {\"cell_id\": N, \"pick\": true}\n"
-                "- 'unpick cell N' → {\"cell_id\": N, \"pick\": false}\n"
-                "- 'done cell N' / 'complete N' → {\"cell_id\": N, \"done\": true}\n"
-                "- 'clear cell N' → {\"cell_id\": N, \"pick\": false, \"done\": false}\n\n"
-                
-                "## CONTEXT UNDERSTANDING\n"
-                "You will receive INVENTORY_JSON containing current inventory state with fields:\n"
-                "- cell_id: unique identifier (1-9 typically)\n"
-                "- product: product name (empty string if no product)\n"
-                "- pick: true if selected for picking, false otherwise\n"
-                "- done: true if already picked/completed, false otherwise\n\n"
-                
-                "## LOGIC RULES\n"
-                "- When pick=true is set, automatically set done=false (unless explicitly requested)\n"
-                "- done=true should only be set for items that are pick=true or were previously picked\n"
-                "- Empty cells (product='') can still be picked if user explicitly requests\n"
-                "- When counting items, only count cells with non-empty product names\n\n"
-                
-                "## EXAMPLES\n\n"
-                
-                "Example 1 - Pick a cell:\n"
-                'User: "Chọn ô 1"\n'
-                'Response: {"action": "update_inventory", "reply": "Đã chọn ô 1 để lấy hàng", '
-                '"reasoning": "User explicitly requested to pick cell 1", '
-                '"updates": [{"cell_id": 1, "pick": true}]}\n\n'
-                
-                "Example 2 - Mark as done:\n"
-                'User: "Đã lấy xong ô 3"\n'
-                'Response: {"action": "update_inventory", "reply": "Đã đánh dấu ô 3 hoàn thành", '
-                '"reasoning": "User confirmed cell 3 pickup is complete", '
-                '"updates": [{"cell_id": 3, "done": true}]}\n\n'
-                
-                "Example 3 - Information query:\n"
-                'User: "Có bao nhiêu sản phẩm?"\n'
-                'Response: {"action": "none", "reply": "Hiện có X sản phẩm trong kho, trong đó Y đã chọn và Z đã hoàn thành", '
-                '"reasoning": "Information query, no inventory changes needed", '
-                '"updates": []}\n\n'
-                
-                "Example 4 - Multiple updates:\n"
-                'User: "Chọn ô 1, 2 và 3"\n'
-                'Response: {"action": "update_inventory", "reply": "Đã chọn 3 ô: 1, 2, 3", '
-                '"reasoning": "User requested multiple cells to be picked", '
-                '"updates": [{"cell_id": 1, "pick": true}, {"cell_id": 2, "pick": true}, {"cell_id": 3, "pick": true}]}\n\n'
-                
-                "Example 5 - Clear a cell:\n"
-                'User: "Xóa ô 5"\n'
-                'Response: {"action": "update_inventory", "reply": "Đã xóa trạng thái của ô 5", '
-                '"reasoning": "User wants to reset cell 5 status", '
-                '"updates": [{"cell_id": 5, "pick": false, "done": false}]}\n\n'
-                
-                "REMEMBER: Always output valid JSON only. No other text."
-            )
-        }
-    
-    def chat_stream(self, messages: List[Dict[str, str]], system_override: Optional[Dict[str, str]] = None) -> Dict:
-        """
-        Stream chat response from Ollama /api/chat
-        Returns dict with response and metadata
-        
-        Args:
-            messages: List of chat messages
-            system_override: Optional system message to override default (for normalization)
-        
-        Returns:
-            Dict with 'response', 'elapsed_time', 'model', 'tokens_estimate'
-        """
-        url = f"{self.host}/api/chat"
-        
-        # Use override system message if provided, otherwise use default
-        system_msg = system_override if system_override is not None else self.system_message
-        
-        # Ensure system message is first
-        full_messages = [system_msg] + [
-            msg for msg in messages if msg.get("role") != "system"
-        ]
-        
-        payload = {
-            "model": self.model,
-            "messages": full_messages,
-            "stream": False,  # Non-streaming for simpler HTTP response
-            "options": {
-                "temperature": OLLAMA_TEMPERATURE,
-                "top_p": OLLAMA_TOP_P,
-                "num_ctx": OLLAMA_NUM_CTX,
-                "num_gpu": int(os.environ.get("OLLAMA_NUM_GPU", "1")),
-            },
-        }
-        
-        req = urllib.request.Request(
-            url=url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        
-        start_time = time.time()
-        
+    def test_connection(self) -> Dict[str, Any]:
+        """Test connection to Ollama and get model info"""
         try:
-            with urllib.request.urlopen(req, timeout=300) as resp:
-                result = json.loads(resp.read().decode("utf-8"))
-                elapsed = time.time() - start_time
-                
-                if result.get("error"):
-                    raise RuntimeError(result["error"])
-                
-                message = result.get("message", {})
-                content = message.get("content", "")
-                
-                # Extract tokens info if available
-                eval_count = result.get("eval_count", 0)
-                prompt_eval_count = result.get("prompt_eval_count", 0)
-                
-                return {
-                    "response": content.strip(),
-                    "elapsed_time": elapsed,
-                    "model": self.model,
-                    "tokens_generated": eval_count,
-                    "tokens_prompt": prompt_eval_count,
-                    "tokens_total": eval_count + prompt_eval_count
-                }
-                
-        except urllib.error.URLError as e:
-            raise RuntimeError(
-                f"Cannot reach Ollama at {self.host}. "
-                f"Is Ollama running? Error: {e}"
-            )
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Invalid JSON response from Ollama: {e}")
-    
-    def chat_with_context(
-        self, 
-        user_message: str, 
-        chat_history: Optional[List[Dict[str, str]]] = None,
-        inventory_context: Optional[Dict] = None
-    ) -> Dict:
-        """
-        Chat with LLM including inventory context
-        
-        Args:
-            user_message: The user's message
-            chat_history: Previous chat messages (optional)
-            inventory_context: Current inventory data (optional)
-        
-        Returns:
-            Dict with response, metadata, and parsing info
-        """
-        messages = []
-        
-        # Add chat history if provided
-        if chat_history:
-            messages.extend(chat_history)
-        
-        # Build context-enriched user message with FULL inventory JSON
-        context_msg = user_message
-        if inventory_context and inventory_context.get("items"):
-            inv_json = json.dumps(inventory_context, ensure_ascii=False, indent=2)
-            context_msg = (
-                user_message
-                + "\n\nINVENTORY_JSON:\n"
-                + inv_json
-            )
-        
-        messages.append({"role": "user", "content": context_msg})
-        
-        # Enhanced logging - BEFORE LLM call
-        print(f"\n{'='*80}")
-        print(f"🧠 LLM Model: {self.model}")
-        print(f"📥 User Message: {user_message}")
-        if inventory_context:
-            items = inventory_context.get("items", [])
-            total = len(items)
-            picked = sum(1 for it in items if it.get("pick"))
-            done = sum(1 for it in items if it.get("done"))
-            print(f"📊 Inventory: {total} items (picked: {picked}, done: {done})")
-        if chat_history:
-            print(f"📝 Chat History: {len(chat_history)} messages")
-        print(f"🔧 Config: temp={OLLAMA_TEMPERATURE}, top_p={OLLAMA_TOP_P}, ctx={OLLAMA_NUM_CTX}")
-        print(f"⏳ Calling LLM...")
-        
-        # Get response from LLM (with timing)
-        result = self.chat_stream(messages)
-        
-        # Enhanced logging - AFTER LLM call
-        print(f"✅ Response received in {result['elapsed_time']:.2f}s")
-        print(f"📤 Response ({len(result['response'])} chars):")
-        print(f"   {result['response'][:150]}{'...' if len(result['response']) > 150 else ''}")
-        print(f"🎯 Tokens: {result.get('tokens_generated', 0)} generated, "
-              f"{result.get('tokens_prompt', 0)} prompt, "
-              f"{result.get('tokens_total', 0)} total")
-        print(f"💨 Speed: {result.get('tokens_generated', 0) / max(result['elapsed_time'], 0.01):.1f} tokens/s")
-        print(f"{'='*80}\n")
-        
-        return result
-    
-    def test_connection(self) -> Dict[str, any]:
-        """Test connection to Ollama and check GPU status"""
-        try:
-            url = f"{self.host}/api/tags"
-            req = urllib.request.Request(url, method="GET")
+            # Test basic connection
+            response = requests.get(f"{self.host}/api/tags", timeout=5)
             
-            with urllib.request.urlopen(req, timeout=5) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                models = [m.get("name") for m in data.get("models", [])]
-                
-                # Test a simple query to check GPU
-                test_result = None
-                gpu_info = "Unknown"
-                try:
-                    test_result = self.chat_stream([
-                        {"role": "user", "content": "Hi"}
-                    ])
-                    # If we got a response, GPU is likely working
-                    gpu_info = "Available (CUDA detected)" if os.environ.get("OLLAMA_NUM_GPU", "1") != "0" else "CPU only"
-                except:
-                    gpu_info = "Not detected"
-                
+            if response.status_code != 200:
                 return {
-                    "status": "connected",
-                    "host": self.host,
-                    "models": models,
-                    "current_model": self.model,
-                    "model_available": self.model in models,
-                    "gpu_status": gpu_info,
-                    "context_window": OLLAMA_NUM_CTX,
-                    "temperature": OLLAMA_TEMPERATURE
+                    "status": "error",
+                    "error": f"HTTP {response.status_code}"
                 }
+            
+            data = response.json()
+            models = data.get("models", [])
+            
+            # Check if our model is available
+            model_available = any(m.get("name") == self.model for m in models)
+            
+            if not model_available:
+                return {
+                    "status": "error",
+                    "error": f"Model '{self.model}' not found. Available: {[m.get('name') for m in models]}"
+                }
+            
+            # Get GPU info
+            gpu_status = "N/A"
+            try:
+                show_response = requests.post(
+                    f"{self.host}/api/show",
+                    json={"name": self.model},
+                    timeout=5
+                )
+                if show_response.status_code == 200:
+                    model_info = show_response.json()
+                    gpu_status = "GPU (CUDA)" if "cuda" in str(model_info).lower() else "CPU"
+            except:
+                pass
+            
+            return {
+                "status": "connected",
+                "models": [m.get("name") for m in models],
+                "current_model": self.model,
+                "gpu_status": gpu_status,
+                "context_window": self.num_ctx,
+                "temperature": self.temperature
+            }
+            
+        except requests.exceptions.ConnectionError:
+            return {
+                "status": "error",
+                "error": "Cannot connect to Ollama. Make sure Ollama is running."
+            }
         except Exception as e:
             return {
                 "status": "error",
-                "host": self.host,
-                "error": str(e),
-                "current_model": self.model,
-                "gpu_status": "Unknown"
+                "error": str(e)
             }
+    
+    def chat_with_context(
+        self,
+        user_message: str,
+        chat_history: List[Dict[str, str]] = None,
+        inventory_context: Dict = None
+    ) -> Dict[str, Any]:
+        """
+        Send chat message to LLM with context
+        Returns JSON action format for inventory operations
+        """
+        start_time = time.time()
+        
+        if chat_history is None:
+            chat_history = []
+        
+        # Build system prompt
+        system_prompt = self._build_system_prompt(inventory_context)
+        
+        # Build messages for Ollama
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add chat history
+        for msg in chat_history:
+            messages.append(msg)
+        
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+        
+        try:
+            # Call Ollama API
+            response = requests.post(
+                f"{self.host}/api/chat",
+                json={
+                    "model": self.model,
+                    "messages": messages,
+                    "stream": False,
+                    "options": {
+                        "temperature": self.temperature,
+                        "num_ctx": self.num_ctx
+                    }
+                },
+                timeout=30
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"Ollama API error: HTTP {response.status_code}")
+            
+            result = response.json()
+            assistant_message = result.get("message", {}).get("content", "")
+            
+            elapsed_time = time.time() - start_time
+            
+            return {
+                "response": assistant_message,
+                "elapsed_time": elapsed_time,
+                "tokens_total": result.get("eval_count", 0) + result.get("prompt_eval_count", 0),
+                "model": self.model
+            }
+            
+        except Exception as e:
+            print(f"❌ LLM Error: {e}")
+            raise
+    
+    def _build_system_prompt(self, inventory_context: Optional[Dict]) -> str:
+        """Build system prompt with inventory context"""
+        
+        # Base system prompt - DeepSeek R1 style (but using Llama core)
+        base_prompt = """You are DeepSeek R1, an advanced AI assistant for RoboDoc warehouse management system.
+
+You help users manage inventory by understanding natural language commands in both English and Vietnamese.
+
+CRITICAL RULES:
+1. You MUST respond with ONLY a JSON object, no markdown, no explanation outside JSON
+2. JSON format must be EXACTLY:
+   {
+     "action": "update_inventory" | "none",
+     "reply": "your message to user in Vietnamese or English",
+     "reasoning": "brief internal reasoning",
+     "updates": [{"cell_id": N, "pick": true/false, "done": true/false}, ...]
+   }
+
+3. For inventory operations (chọn, xóa, lấy, đánh dấu, clear, pick, done):
+   - action = "update_inventory"
+   - updates = array of changes (ONLY include pick and done fields, NEVER product or cell_id changes)
+   
+4. For questions or greetings:
+   - action = "none"
+   - reply = your answer
+   - updates = []
+
+5. When user says "chọn ô 3" or "pick cell 3":
+   - updates = [{"cell_id": 3, "pick": true, "done": false}]
+
+6. When user says "xóa ô 3" or "clear cell 3":
+   - updates = [{"cell_id": 3, "pick": false, "done": false}]
+
+7. When user says "hoàn thành ô 3" or "done cell 3":
+   - updates = [{"cell_id": 3, "done": true}]
+
+REMEMBER: Output ONLY JSON, nothing else!"""
+
+        # Add inventory context if available
+        if inventory_context and "items" in inventory_context:
+            items_info = []
+            for item in inventory_context["items"]:
+                cell_id = item.get("cell_id", "?")
+                product = item.get("product", "empty")
+                pick = item.get("pick", False)
+                done = item.get("done", False)
+                items_info.append(f"Cell {cell_id}: {product} (pick={pick}, done={done})")
+            
+            inventory_text = "\n".join(items_info)
+            base_prompt += f"\n\nCURRENT INVENTORY STATE:\n{inventory_text}"
+        
+        return base_prompt
+
+
+# Export constants for use in app.py
+__all__ = ["LLMService", "OLLAMA_TEMPERATURE", "OLLAMA_NUM_CTX"]

@@ -1,0 +1,60 @@
+{
+  "time": "2025-12-18 06:28:39",
+  "mode": 1,
+  "selected_class_ids": [
+    3,
+    7,
+    11
+  ],
+  "scan": {
+    "P1": {
+      "id": 15,
+      "name": "ket fanta",
+      "conf": 0.8619,
+      "time": "2025-12-18 06:28:05",
+      "img": "captures\\P1.jpg"
+    },
+    "P2": {
+      "id": -1,
+      "name": "none",
+      "conf": 0.0,
+      "time": "2025-12-18 06:28:08",
+      "img": "captures\\P2.jpg"
+    },
+    "P3": {
+      "id": 7,
+      "name": "photron",
+      "conf": 0.9477,
+      "time": "2025-12-18 06:28:10",
+      "img": "captures\\P3.jpg"
+    },
+    "P4": {
+      "id": 8,
+      "name": "haohao",
+      "conf": 0.9033,
+      "time": "2025-12-18 06:28:21",
+      "img": "captures\\P4.jpg"
+    },
+    "P5": {
+      "id": 3,
+      "name": "van tho",
+      "conf": 0.8333,
+      "time": "2025-12-18 06:28:24",
+      "img": "captures\\P5.jpg"
+    },
+    "P6": {
+      "id": 5,
+      "name": "siukay",
+      "conf": 0.7743,
+      "time": "2025-12-18 06:28:34",
+      "img": "captures\\P6.jpg"
+    },
+    "P7": {
+      "id": 11,
+      "name": "nuoc khoang",
+      "conf": 0.9522,
+      "time": "2025-12-18 06:28:39",
+      "img": "captures\\P7.jpg"
+    }
+  }
+}

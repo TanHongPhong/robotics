@@ -6,9 +6,19 @@ export function InventoryProvider({ children }) {
     const [items, setItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Load data from backend on mount
+    // Load data from backend on mount + polling
     useEffect(() => {
         loadInventoryData();
+
+        // 🔄 AUTO-RELOAD: Poll every 3 seconds to sync with backend file changes
+        const pollInterval = setInterval(() => {
+            loadInventoryData();
+        }, 3000); // 3 seconds
+
+        // Cleanup interval on unmount
+        return () => {
+            clearInterval(pollInterval);
+        };
     }, []);
 
     const loadInventoryData = async () => {
@@ -27,42 +37,77 @@ export function InventoryProvider({ children }) {
             setIsLoading(false);
         } catch (error) {
             console.error('Error loading inventory data:', error);
-            // Fallback to default data
-            setItems([
-                { cell_id: 1, product: "", pick: false, done: false },
-                { cell_id: 2, product: "", pick: false, done: false },
-                { cell_id: 3, product: "", pick: false, done: false },
-                { cell_id: 4, product: "", pick: false, done: false },
-                { cell_id: 5, product: "", pick: false, done: false },
-                { cell_id: 6, product: "", pick: false, done: false },
-                { cell_id: 7, product: "", pick: false, done: false },
-                { cell_id: 8, product: "", pick: false, done: false },
-                { cell_id: 9, product: "", pick: false, done: false }
-            ]);
+            // Fallback to default 16 items (4x4 grid) with YOLO class names
+            const classNames = [
+                "coca lon", "pepsi lon", "goi qua", "van tho",
+                "cay quat", "siukay", "xuanay", "photron",
+                "haohao", "omachi", "coca chai", "nuoc khoang",
+                "ket sprite", "ket coca", "ket pepsi", "ket fanta"
+            ];
+
+            setItems(
+                Array.from({ length: 16 }, (_, i) => ({
+                    cell_id: i + 1,
+                    product: classNames[i],
+                    class_id: i,
+                    pick: false,
+                    done: false
+                }))
+            );
             setIsLoading(false);
         }
     };
 
-    const togglePick = (cellId) => {
-        setItems(prevItems => prevItems.map(item => {
-            if (item.cell_id === cellId) {
-                return {
-                    ...item,
-                    pick: !item.pick,
-                    done: !item.pick ? false : item.done
-                };
-            }
-            return item;
-        }));
+    const togglePick = async (cellId) => {
+        setItems(prevItems => {
+            const newItems = prevItems.map(item => {
+                if (item.cell_id === cellId) {
+                    return {
+                        ...item,
+                        pick: !item.pick,
+                        done: !item.pick ? false : item.done
+                    };
+                }
+                return item;
+            });
+
+            // ✅ Save to backend immediately after user toggles
+            setTimeout(async () => {
+                try {
+                    const qwenAPI = (await import('../services/qwenAPI')).default;
+                    await qwenAPI.updateInventory({ items: newItems });
+                    console.log('✅ Saved pick toggle to backend');
+                } catch (error) {
+                    console.error('❌ Failed to save pick toggle:', error);
+                }
+            }, 100);
+
+            return newItems;
+        });
     };
 
-    const toggleDone = (cellId) => {
-        setItems(prevItems => prevItems.map(item => {
-            if (item.cell_id === cellId && item.pick) {
-                return { ...item, done: !item.done };
-            }
-            return item;
-        }));
+    const toggleDone = async (cellId) => {
+        setItems(prevItems => {
+            const newItems = prevItems.map(item => {
+                if (item.cell_id === cellId && item.pick) {
+                    return { ...item, done: !item.done };
+                }
+                return item;
+            });
+
+            // ✅ Save to backend immediately after user toggles
+            setTimeout(async () => {
+                try {
+                    const qwenAPI = (await import('../services/qwenAPI')).default;
+                    await qwenAPI.updateInventory({ items: newItems });
+                    console.log('✅ Saved done toggle to backend');
+                } catch (error) {
+                    console.error('❌ Failed to save done toggle:', error);
+                }
+            }, 100);
+
+            return newItems;
+        });
     };
 
     const downloadJSON = () => {

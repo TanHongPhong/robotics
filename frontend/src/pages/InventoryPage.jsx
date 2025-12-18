@@ -7,19 +7,35 @@ import RightPanel from '../components/RightPanel';
 import './InventoryPage.css';
 
 export default function InventoryPage() {
-    const { items, togglePick, toggleDone, saveToBackend, isLoading } = useInventory();
+    const { items, togglePick, toggleDone, isLoading } = useInventory();
     const [robotStatus, setRobotStatus] = useState('idle'); // idle, running, stopped
 
-    // Auto-save to backend when items change
-    useEffect(() => {
-        if (!isLoading && items.length > 0) {
-            saveToBackend();
+    const handleHomeRobot = async () => {
+        try {
+            const response = await qwenAPI.robotCommand('home');
+            setRobotStatus('idle');
+            console.log('✅ Robot homed:', response.message);
+        } catch (error) {
+            console.error('❌ Failed to home robot:', error);
+            alert('Không thể home robot. Vui lòng thử lại.');
         }
-    }, [items]);
+    };
 
     const handleStartRobot = async () => {
         try {
-            const response = await qwenAPI.robotCommand('start');
+            // Lấy danh sách class_id của các ô đã chọn
+            const selectedClassIds = items
+                .filter(item => item.pick)
+                .map(item => item.class_id)
+                .filter(id => id !== undefined);
+
+            console.log('📦 Selected class IDs:', selectedClassIds);
+
+            // Gửi command start với class_ids
+            const response = await qwenAPI.robotCommand('start', {
+                class_ids: selectedClassIds
+            });
+
             setRobotStatus('running');
             console.log('✅ Robot started:', response.message);
         } catch (error) {
@@ -39,26 +55,6 @@ export default function InventoryPage() {
         }
     };
 
-    const handleConfirmPick = async () => {
-        const pickedItems = items.filter(item => item.pick && !item.done);
-        if (pickedItems.length === 0) {
-            alert('Không có sản phẩm nào được chọn để lấy!');
-            return;
-        }
-
-        // Confirm and start robot
-        if (confirm(`Xác nhận lấy ${pickedItems.length} sản phẩm?\n\nRobot sẽ bắt đầu lấy hàng.`)) {
-            try {
-                const response = await qwenAPI.robotCommand('start');
-                setRobotStatus('running');
-                alert(`✅ ${response.message}\n\nRobot đang lấy ${pickedItems.length} sản phẩm.`);
-            } catch (error) {
-                console.error('❌ Failed to start robot:', error);
-                alert('Không thể khởi động robot. Vui lòng thử lại.');
-            }
-        }
-    };
-
     if (isLoading) {
         return <div className="loading">Loading inventory data...</div>;
     }
@@ -70,9 +66,9 @@ export default function InventoryPage() {
 
                 <div className="section-header-group">
                     <div>
-                        <h2 className="main-title">Warehouse Inventory</h2>
+                        <h2 className="main-title">Warehouse Inventory (4x4)</h2>
                         <span className="section-title">
-                            REAL-TIME TRACKING
+                            YOLO CLASS DETECTION
                             <span style={{
                                 marginLeft: '10px',
                                 color: robotStatus === 'running' ? 'var(--accent-green)' :
@@ -84,6 +80,13 @@ export default function InventoryPage() {
                         </span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px' }}>
+                        <button
+                            className="btn-save"
+                            onClick={handleHomeRobot}
+                            style={{ backgroundColor: '#f39c12' }}
+                        >
+                            <i className="fa-solid fa-home"></i> Home
+                        </button>
                         <button
                             className="btn-save"
                             onClick={handleStartRobot}

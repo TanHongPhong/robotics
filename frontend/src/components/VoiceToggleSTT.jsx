@@ -126,32 +126,28 @@ export default function VoiceToggleSTT({ backendUrl = "http://127.0.0.1:5000" })
         socket.on("stt_final", (p) => setFinals((prev) => [...prev, p?.text ?? ""]));
 
         socket.on("stt_stopped", async (asrPayload) => {
+            // ✅ Backend đã normalize với Qwen rồi, trả về trong asrPayload.normalized
             setRawFull(asrPayload?.raw_full ?? "");
+            const norm = asrPayload?.normalized ?? "";
+            setNormalized(norm);
             setIsRec(false);
 
-            // Qwen normalize (/api/qwen/normalize)
+            // Gọi chat LLM với normalized transcript
             try {
-                const r = await fetch(`${backendUrl}/api/qwen/normalize`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ transcript_payload: asrPayload }),
-                });
-                const j = await r.json();
-                const norm = j?.normalized ?? "";
-                setNormalized(norm);
-
-                // (tuỳ chọn) gọi Qwen chat luôn
                 if (norm.trim()) {
-                    const r2 = await fetch(`${backendUrl}/api/chat`, {
+                    const r = await fetch(`${backendUrl}/api/chat`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ message: norm, session_id: sessionId ?? "default" }),
+                        body: JSON.stringify({
+                            message: norm,
+                            session_id: sessionId ?? "default"
+                        }),
                     });
-                    const j2 = await r2.json();
-                    setAssistant(j2?.response ?? "");
+                    const j = await r.json();
+                    setAssistant(j?.response ?? "");
                 }
             } catch (e) {
-                setErr(String(e));
+                setErr(`Chat error: ${String(e)}`);
             } finally {
                 await stopAudioCapture();
             }
