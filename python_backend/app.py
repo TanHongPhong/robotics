@@ -435,7 +435,6 @@ def robot_command():
         return jsonify({"error": str(e)}), 500
 
 
-
 # Socket.IO Events for STT
 @socketio.on('connect')
 def handle_connect():

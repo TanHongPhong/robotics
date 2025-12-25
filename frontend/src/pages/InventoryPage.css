@@ -39,12 +39,24 @@
     font-size: 11px;
     cursor: pointer;
     transition: 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.btn-save:hover {
+.btn-save:hover:not(:disabled) {
     border-color: var(--accent-green);
     color: var(--accent-green);
     background: var(--accent-green-dim);
+}
+
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-save i {
+    font-size: 10px;
 }
 
 .grid-fill-container {
@@ -52,6 +64,14 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+    height: 100%;
 }
 
 .loading {

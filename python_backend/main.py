@@ -175,6 +175,8 @@ def video_stream_thread():
 # Serial reader
 def reader_thread():
     buf = ""
+    mode2_scanning = False  # Track if we're in Mode 2 scan phase
+    
     while state["running"]:
         try:
             c = ser.read(1)
@@ -189,24 +191,49 @@ def reader_thread():
             
             print(f"[Arduino] {line}")
             
+            # Detect when Mode 2 scan starts
+            if line.startswith("[RUN] MODE 2 SCAN"):
+                mode2_scanning = True
+                print("[PY] Mode 2 SCAN started - will save all detections")
+            
+            # Handle EVT ARRIVED
             if line.startswith("EVT ARRIVED P"):
                 p = line.split()[-1]
                 ok, frame = cap.read()
                 if ok:
                     cv2.imwrite(f"captures/{p}.jpg", frame)
                     cid, cname, conf = infer_best(frame)
+                    
                     with lock:
                         state["scan"][p] = {"id": cid, "name": cname, "conf": round(conf, 4)}
                         selected = set(state["selected_ids"])
+                        current_mode = state.get("mode", 1)
+                    
                     save_json()
                     
-                    if cid in selected:
-                        send_line("DEC PICK")
-                        print(f"✅ PICK {p} -> {cid}:{cname}")
+                    # Mode 2 Scan: Always SKIP (just collecting data)
+                    if mode2_scanning:
+                        send_line("DEC SKIP")
+                        print(f"📸 [MODE2 SCAN] {p} -> {cid}:{cname} (saved)")
+                    # Mode 1: Live decision
+                    elif current_mode == 1:
+                        if cid in selected:
+                            send_line("DEC PICK")
+                            print(f"✅ [MODE1] PICK {p} -> {cid}:{cname}")
+                        else:
+                            send_line("DEC SKIP")
+                            print(f"⏭️ [MODE1] SKIP {p} -> {cid}:{cname}")
+                    # Mode 2 Pick: Should not receive EVT (Arduino uses direct pick)
                     else:
                         send_line("DEC SKIP")
-                        print(f"⏭️ SKIP {p} -> {cid}:{cname}")
+            
+            # Detect SCAN_DONE
+            if line == "SCAN_DONE":
+                mode2_scanning = False
+                print("[PY] Mode 2 SCAN completed - data saved to scan_results.json")
+                
         except: pass
+
 
 # API
 @app.route('/api/arduino/command', methods=['POST'])
@@ -242,6 +269,157 @@ def arduino_cmd():
         return jsonify({"status": "ok", "message": "Stop sent"})
     
     return jsonify({"error": "Unknown command"}), 400
+
+
+# New API Endpoints for Mode 1/2 Integration
+@app.route('/api/robot/start', methods=['POST'])
+def robot_start():
+    """Start robot operation (Mode 1 or Mode 2)"""
+    try:
+        data = request.get_json()
+        mode = data.get('mode', 1)
+        class_ids = data.get('class_ids', [])
+        
+        with lock:
+            state["mode"] = mode
+            state["selected_ids"] = set(class_ids)
+        
+        print(f"\n[API] Starting robot in MODE {mode}")
+        print(f"[API] Selected class IDs: {class_ids}")
+        
+        # Send class IDs first
+        if class_ids:
+            send_line(" ".join(map(str, class_ids)))
+            time.sleep(0.05)
+        
+        # Send MODE command
+        send_line(f"MODE {mode}")
+        time.sleep(0.05)
+        
+        if mode == 1:
+            # Mode 1: Live pick - START immediately
+            send_line("START")
+            message = f"Mode 1 started with {len(class_ids)} selected items"
+        elif mode == 2:
+            # Mode 2: Pick from scan data - send LIST command
+            # Load scan data
+            scan_data = {}
+            if os.path.exists("scan_results.json"):
+                with open("scan_results.json", "r") as f:
+                    scan_data = json.load(f).get("scan", {})
+            
+            # Build pick list from scan data
+            pick_positions = []
+            for pos, info in scan_data.items():
+                if info.get("id", -1) in class_ids:
+                    pick_positions.append(pos)
+            
+            if pick_positions:
+                list_cmd = "LIST " + " ".join(pick_positions)
+                send_line(list_cmd)
+                message = f"Mode 2 started - picking from positions: {pick_positions}"
+            else:
+                message = "Mode 2: No matching items found in scan data"
+        else:
+            return jsonify({"error": "Invalid mode"}), 400
+        
+        return jsonify({
+            "status": "success",
+            "message": message,
+            "mode": mode,
+            "class_ids": class_ids
+        })
+        
+    except Exception as e:
+        print(f"[API] Error starting robot: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/robot/stop', methods=['POST'])
+def robot_stop():
+    """Stop robot operation"""
+    try:
+        print("[API] Stopping robot")
+        send_line("STOP")
+        return jsonify({
+            "status": "success",
+            "message": "Robot stopped"
+        })
+    except Exception as e:
+        print(f"[API] Error stopping robot: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/robot/home', methods=['POST'])
+def robot_home():
+    """Send robot to home position"""
+    try:
+        print("[API] Homing robot")
+        send_line("H0")
+        return jsonify({
+            "status": "success",
+            "message": "Robot homing"
+        })
+    except Exception as e:
+        print(f"[API] Error homing robot: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/robot/scan', methods=['POST'])
+def robot_scan():
+    """Trigger Mode 2 shelf scan"""
+    try:
+        print("[API] Starting Mode 2 scan")
+        
+        # Clear previous scan data
+        with lock:
+            state["scan"] = {}
+            state["mode"] = 2
+        
+        # Send MODE 2 and START to trigger scan
+        send_line("MODE 2")
+        time.sleep(0.05)
+        send_line("START")
+        
+        return jsonify({
+            "status": "success",
+            "message": "Scan initiated - robot will scan all shelf positions"
+        })
+    except Exception as e:
+        print(f"[API] Error scanning: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/robot/mode', methods=['POST'])
+def robot_set_mode():
+    """Set robot operating mode"""
+    try:
+        data = request.get_json()
+        mode = data.get('mode', 1)
+        
+        if mode not in [1, 2]:
+            return jsonify({"error": "Mode must be 1 or 2"}), 400
+        
+        with lock:
+            state["mode"] = mode
+        
+        print(f"[API] Set robot mode to {mode}")
+        send_line(f"MODE {mode}")
+        
+        return jsonify({
+            "status": "success",
+            "mode": mode,
+            "message": f"Mode set to {mode}"
+        })
+    except Exception as e:
+        print(f"[API] Error setting mode: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 
 @app.route('/health')
 def health():

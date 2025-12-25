@@ -11,7 +11,7 @@
             "cell_id": 2,
             "class_id": 1,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "pepsi lon"
         },
         {
@@ -25,7 +25,7 @@
             "cell_id": 4,
             "class_id": 3,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "van tho"
         },
         {
@@ -39,7 +39,7 @@
             "cell_id": 6,
             "class_id": 5,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "siukay"
         },
         {
@@ -53,7 +53,7 @@
             "cell_id": 8,
             "class_id": 7,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "photron"
         },
         {
@@ -67,7 +67,7 @@
             "cell_id": 10,
             "class_id": 9,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "omachi"
         },
         {
@@ -81,7 +81,7 @@
             "cell_id": 12,
             "class_id": 11,
             "done": false,
-            "pick": false,
+            "pick": true,
             "product": "nuoc khoang"
         },
         {
@@ -102,7 +102,7 @@
             "cell_id": 15,
             "class_id": 14,
             "done": false,
-            "pick": true,
+            "pick": false,
             "product": "ket pepsi"
         },
         {
